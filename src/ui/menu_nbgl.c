@@ -53,50 +53,21 @@ void ui_menu_main(void) {
 //  -----------------------------------------------------------
 //  --------------------- SETTINGS MENU -----------------------
 //  -----------------------------------------------------------
-
-static const char* const INFO_TYPES[] = {"Version", "Developer"};
-static const char* const INFO_CONTENTS[] = {APPVERSION, "Ledger"};
+#define SETTING_INFO_NB 2
+static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Developer"};
+static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "Ledger"};
 
 // settings switches definitions
 enum { DUMMY_SWITCH_1_TOKEN = FIRST_USER_TOKEN, DUMMY_SWITCH_2_TOKEN };
 enum { DUMMY_SWITCH_1_ID = 0, DUMMY_SWITCH_2_ID, SETTINGS_SWITCHES_NB };
 
-static nbgl_layoutSwitch_t switches[SETTINGS_SWITCHES_NB] = {0};
+static nbgl_contentSwitch_t switches[SETTINGS_SWITCHES_NB] = {0};
 
-static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
-    UNUSED(page);
-
-    // the first settings page contains only the version and the developer name
-    // of the app (shall be always on the first setting page)
-    if (page == 0) {
-        content->type = INFOS_LIST;
-        content->infosList.nbInfos = 2;
-        content->infosList.infoTypes = INFO_TYPES;
-        content->infosList.infoContents = INFO_CONTENTS;
-    }
-    // the second settings page contains 2 toggle setting switches
-    else if (page == 1) {
-        switches[DUMMY_SWITCH_1_ID].initState = (nbgl_state_t) N_storage.dummy1_allowed;
-        switches[DUMMY_SWITCH_1_ID].text = "Dummy 1";
-        switches[DUMMY_SWITCH_1_ID].subText = "Allow dummy 1\nin transactions";
-        switches[DUMMY_SWITCH_1_ID].token = DUMMY_SWITCH_1_TOKEN;
-        switches[DUMMY_SWITCH_1_ID].tuneId = TUNE_TAP_CASUAL;
-
-        switches[DUMMY_SWITCH_2_ID].initState = (nbgl_state_t) N_storage.dummy2_allowed;
-        switches[DUMMY_SWITCH_2_ID].text = "Dummy 2";
-        switches[DUMMY_SWITCH_2_ID].subText = "Allow dummy 2\nin transactions";
-        switches[DUMMY_SWITCH_2_ID].token = DUMMY_SWITCH_2_TOKEN;
-        switches[DUMMY_SWITCH_2_ID].tuneId = TUNE_TAP_CASUAL;
-
-        content->type = SWITCHES_LIST;
-        content->switchesList.nbSwitches = SETTINGS_SWITCHES_NB;
-        content->switchesList.switches = (nbgl_layoutSwitch_t*) switches;
-    } else {
-        return false;
-    }
-    // valid page so return true
-    return true;
-}
+static const nbgl_contentInfoList_t infoList = {
+    .nbInfos = SETTING_INFO_NB,
+    .infoTypes = INFO_TYPES,
+    .infoContents = INFO_CONTENTS,
+};
 
 // callback for setting warning choice
 static void review_warning_choice(bool confirm) {
@@ -104,6 +75,7 @@ static void review_warning_choice(bool confirm) {
     if (confirm) {
         // toggle the switch value
         switch_value = !N_storage.dummy2_allowed;
+        switches[DUMMY_SWITCH_2_ID].initState = (nbgl_state_t) N_storage.dummy2_allowed;
         // store the new setting value in NVM
         nvm_write((void*) &N_storage.dummy2_allowed, &switch_value, 1);
     }
@@ -112,13 +84,16 @@ static void review_warning_choice(bool confirm) {
     ui_menu_settings();
 }
 
-static void controls_callback(int token, uint8_t index) {
+static void controls_callback(int token, uint8_t index, int page) {
     UNUSED(index);
+    UNUSED(page);
+
     uint8_t switch_value;
     if (token == DUMMY_SWITCH_1_TOKEN) {
         // Dummy 1 switch touched
         // toggle the switch value
         switch_value = !N_storage.dummy1_allowed;
+        switches[DUMMY_SWITCH_1_ID].initState = (nbgl_state_t) N_storage.dummy1_allowed;
         // store the new setting value in NVM
         nvm_write((void*) &N_storage.dummy1_allowed, &switch_value, 1);
     } else if (token == DUMMY_SWITCH_2_TOKEN) {
@@ -137,6 +112,7 @@ static void controls_callback(int token, uint8_t index) {
         } else {
             // toggle the switch value
             switch_value = !N_storage.dummy2_allowed;
+            switches[DUMMY_SWITCH_2_ID].initState = (nbgl_state_t) N_storage.dummy2_allowed;
             // store the new setting value in NVM
             nvm_write((void*) &N_storage.dummy2_allowed, &switch_value, 1);
         }
@@ -144,17 +120,43 @@ static void controls_callback(int token, uint8_t index) {
 }
 
 // settings menu definition
+#define SETTING_CONTENTS_NB 1
+static const nbgl_content_t contents[SETTING_CONTENTS_NB] = {
+    {
+        .type = SWITCHES_LIST,
+        .content.switchesList.nbSwitches = SETTINGS_SWITCHES_NB,
+        .content.switchesList.switches = switches,
+        .contentActionCallback = controls_callback
+    }
+};
+
+static const nbgl_genericContents_t settingContents = {
+    .callback_call_needed = false,
+    .contentsList = contents,
+    .nbContents = SETTING_CONTENTS_NB
+};
+
 void ui_menu_settings() {
-#define TOTAL_SETTINGS_PAGE  (2)
 #define INIT_SETTINGS_PAGE   (0)
-#define DISABLE_SUB_SETTINGS (false)
-    nbgl_useCaseSettings(APPNAME,
-                         INIT_SETTINGS_PAGE,
-                         TOTAL_SETTINGS_PAGE,
-                         DISABLE_SUB_SETTINGS,
-                         ui_menu_main,
-                         nav_callback,
-                         controls_callback);
+
+    // Initialise switches data
+    switches[DUMMY_SWITCH_1_ID].initState = (nbgl_state_t) N_storage.dummy1_allowed;
+    switches[DUMMY_SWITCH_1_ID].text = "Dummy 1";
+    switches[DUMMY_SWITCH_1_ID].subText = "Allow dummy 1\nin transactions";
+    switches[DUMMY_SWITCH_1_ID].token = DUMMY_SWITCH_1_TOKEN;
+    switches[DUMMY_SWITCH_1_ID].tuneId = TUNE_TAP_CASUAL;
+
+    switches[DUMMY_SWITCH_2_ID].initState = (nbgl_state_t) N_storage.dummy2_allowed;
+    switches[DUMMY_SWITCH_2_ID].text = "Dummy 2";
+    switches[DUMMY_SWITCH_2_ID].subText = "Allow dummy 2\nin transactions";
+    switches[DUMMY_SWITCH_2_ID].token = DUMMY_SWITCH_2_TOKEN;
+    switches[DUMMY_SWITCH_2_ID].tuneId = TUNE_TAP_CASUAL;
+
+    nbgl_useCaseGenericSettings(APPNAME,
+                                INIT_SETTINGS_PAGE,
+                                &settingContents,
+                                &infoList,
+                                ui_menu_main);
 }
 
 #endif
