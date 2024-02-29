@@ -23,7 +23,7 @@ def test_app_mainmenu(firmware, navigator, test_name):
             NavIns(NavInsID.TOUCH, (200, 261)),
             NavIns(NavInsID.TOUCH, (200, 261)),
             NavInsID.USE_CASE_CHOICE_REJECT,
-            NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT
+            NavInsID.USE_CASE_SUB_SETTINGS_EXIT
         ]
     navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH, test_name, instructions,
                                    screen_change_before_first_instruction=False)
