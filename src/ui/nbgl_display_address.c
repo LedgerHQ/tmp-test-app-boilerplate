@@ -42,9 +42,9 @@ static void review_choice(bool confirm) {
     // Answer, display a status page and go back to main
     validate_pubkey(confirm);
     if (confirm) {
-        nbgl_useCaseStatus("ADDRESS\nVERIFIED", true, ui_menu_main);
+        nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_VERIFIED, ui_menu_main);
     } else {
-        nbgl_useCaseStatus("Address verification\ncancelled", false, ui_menu_main);
+        nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_REJECTED, ui_menu_main);
     }
 }
 

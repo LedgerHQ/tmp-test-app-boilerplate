@@ -48,13 +48,13 @@ static nbgl_layoutTagValueList_t pairList;
 
 // called when long press button on 3rd page is long-touched or when reject footer is touched
 static void review_choice(bool confirm) {
+    // Answer, display a status page and go back to main
+    validate_transaction(confirm);
     if (confirm) {
-        // display a status page and go back to main
-        validate_transaction(true);
-        nbgl_useCaseStatus("TRANSACTION\nSIGNED", true, ui_menu_main);
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_menu_main);
     } else {
-        validate_transaction(false);
-        nbgl_useCaseStatus("Transaction rejected", false, ui_menu_main);
+
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_menu_main);
     }
 }
 
