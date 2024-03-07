@@ -118,7 +118,7 @@ static void controls_callback(int token, uint8_t index, int page) {
         // to activate the dummy 2 setting
         if (!N_storage.dummy2_allowed) {
             // Display the warning message and ask the user to confirm
-            nbgl_useCaseChoice(&C_warning64px,
+            nbgl_useCaseChoice(&C_Warning_64px,
                                "Dummy 2",
                                "Are you sure to\nallow dummy 2\nin transactions?",
                                "I understand, confirm",
